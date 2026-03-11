@@ -13,25 +13,23 @@ export default function RegisterPage() {
         e.preventDefault();
 
         if (!username || !email || !password) {
-            setMessage("用户名、邮箱和密码不能为空");
+            setMessage("请输入用户名、邮箱和密码");
             setIsSuccess(false);
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
         if (!emailRegex.test(email)) {
-            setMessage("请输入正确的邮箱格式");
+            setMessage("请输入正确的邮箱地址");
             setIsSuccess(false);
             return;
         }
 
         if (password.length < 6) {
-            setMessage("密码长度不能少于6位");
+            setMessage("密码长度不能少于 6 位");
             setIsSuccess(false);
             return;
         }
-
 
         setMessage("");
         setIsSuccess(false);
@@ -50,29 +48,27 @@ export default function RegisterPage() {
             });
 
             const result = await response.json();
-
             setMessage(result.message);
             setIsSuccess(result.success);
+
             if (result.success) {
                 setUsername("");
                 setEmail("");
                 setPassword("");
             }
-
-            console.log("注册接口返回：", result);
         } catch (error) {
-            console.error("请求注册接口失败：", error);
-            setMessage("请求失败，请稍后重试");
+            console.error("注册失败：", error);
+            setMessage("注册失败，请稍后再试");
             setIsSuccess(false);
         }
     };
 
     return (
-        <main className="min-h-screen bg-white text-gray-900">
+        <main className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text)]">
             <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-                <h1 className="text-3xl font-bold">用户注册</h1>
-                <p className="mt-3 text-gray-600">
-                    这是音游论坛交流平台的注册页面。
+                <h1 className="text-3xl font-bold">注册</h1>
+                <p className="mt-3 text-[var(--rc-muted)]">
+                    创建一个社区账号，开始发布和参与讨论。
                 </p>
 
                 <form
@@ -80,7 +76,9 @@ export default function RegisterPage() {
                     className="mt-8 space-y-4 rounded-2xl border p-6 shadow-sm"
                 >
                     <div>
-                        <label className="mb-2 block text-sm font-medium">用户名</label>
+                        <label className="mb-2 block text-sm font-medium">
+                            用户名
+                        </label>
                         <input
                             type="text"
                             placeholder="请输入用户名"
@@ -91,7 +89,9 @@ export default function RegisterPage() {
                     </div>
 
                     <div>
-                        <label className="mb-2 block text-sm font-medium">邮箱</label>
+                        <label className="mb-2 block text-sm font-medium">
+                            邮箱
+                        </label>
                         <input
                             type="email"
                             placeholder="请输入邮箱"
@@ -102,7 +102,9 @@ export default function RegisterPage() {
                     </div>
 
                     <div>
-                        <label className="mb-2 block text-sm font-medium">密码</label>
+                        <label className="mb-2 block text-sm font-medium">
+                            密码
+                        </label>
                         <input
                             type="password"
                             placeholder="请输入密码"
@@ -113,15 +115,10 @@ export default function RegisterPage() {
                     </div>
 
                     {message && isSuccess && (
-                        <p className="text-sm text-green-600">
-                            {message}
-                        </p>
+                        <p className="text-sm text-green-600">{message}</p>
                     )}
-
                     {message && !isSuccess && (
-                        <p className="text-sm text-red-600">
-                            {message}
-                        </p>
+                        <p className="text-sm text-red-600">{message}</p>
                     )}
 
                     <button

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -50,6 +50,8 @@ export async function POST(request: NextRequest) {
                 id: newUser.id,
                 username: newUser.username,
                 email: newUser.email,
+                role: newUser.role,
+                isBanned: newUser.isBanned,
             },
         });
     } catch (error) {

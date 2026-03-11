@@ -1,19 +1,23 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import "./globals.css";
+import TopNav from "@/components/TopNav";
 
 export const metadata: Metadata = {
-    title: "音游论坛交流平台",
-    description: "基于 Next.js 14 的音游论坛交流平台毕业设计项目",
+    title: "音游论坛",
+    description: "一个面向音游玩家的交流社区。",
 };
 
 export default function RootLayout({
-                                       children,
-                                   }: Readonly<{
+    children,
+}: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
         <html lang="zh-CN">
-        <body>{children}</body>
+            <body>
+                <TopNav />
+                {children}
+            </body>
         </html>
     );
 }

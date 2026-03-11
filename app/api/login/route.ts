@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -19,10 +19,7 @@ export async function POST(request: NextRequest) {
 
         const user = await prisma.user.findFirst({
             where: {
-                OR: [
-                    { username: account },
-                    { email: account },
-                ],
+                OR: [{ username: account }, { email: account }],
             },
         });
 
@@ -33,6 +30,16 @@ export async function POST(request: NextRequest) {
                     message: "用户不存在",
                 },
                 { status: 404 }
+            );
+        }
+
+        if (user.isBanned) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "账号已被封禁",
+                },
+                { status: 403 }
             );
         }
 
@@ -55,6 +62,8 @@ export async function POST(request: NextRequest) {
                 id: user.id,
                 username: user.username,
                 email: user.email,
+                role: user.role,
+                isBanned: user.isBanned,
             },
         });
     } catch (error) {

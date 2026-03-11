@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0c0f17;
+  --foreground: #e6edf3;
+  --rc-bg: #0c0f17;
+  --rc-text: #e6edf3;
+  --rc-muted: rgba(226, 232, 240, 0.72);
+  --rc-glass: rgba(18, 22, 33, 0.9);
+  --rc-border: rgba(90, 105, 133, 0.3);
+  --rc-neon: rgba(96, 165, 250, 0.9);
+  --rc-accent: rgba(59, 130, 246, 1);
 }
 
 @theme inline {
@@ -22,5 +29,197 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+input,
+textarea,
+select {
+  background: rgba(15, 23, 42, 0.75);
+  color: var(--rc-text);
+  border: 1px solid var(--rc-border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--rc-muted);
+}
+
+select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+.rc-layer {
+  position: relative;
+  z-index: 1;
+}
+
+.glass-panel {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.92));
+  border: 1px solid var(--rc-border);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 12px 30px rgba(3, 7, 18, 0.45);
+}
+
+.bento-card {
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 28px;
+  padding: 20px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 20px 50px rgba(2, 6, 23, 0.5);
+}
+
+.neon-line {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(56, 189, 248, 0.2),
+    rgba(56, 189, 248, 1),
+    rgba(147, 51, 234, 0.9)
+  );
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.7),
+    0 0 32px rgba(147, 51, 234, 0.5);
+  animation: pulseLine 2.6s ease-in-out infinite;
+}
+
+.pulse-dot {
+  height: 10px;
+  width: 10px;
+  border-radius: 999px;
+  background: var(--rc-neon);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+  animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+.ripple-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #e2e8f0;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ripple-button.ghost {
+  background: transparent;
+  color: var(--rc-text);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.ripple-button::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.4), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ripple-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+}
+
+.ripple-button:hover::after {
+  opacity: 1;
+}
+
+.ripple-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+.note-hit {
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.note-hit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3),
+    0 16px 28px rgba(15, 23, 42, 0.6);
+}
+
+.note-hit::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.note-hit:hover::after {
+  opacity: 1;
+}
+
+.admin-pill {
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.25);
+  color: #e2e8f0;
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+@keyframes pulseLine {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.35);
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+}
+
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  color: inherit;
+  text-decoration: none;
+}
+
+.hero-button--filled {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #ffffff;
+}
+
+.hero-link {
+  color: inherit;
 }
