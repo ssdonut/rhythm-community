@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { splitCommaSeparated } from "@/lib/content-mappers";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
@@ -14,11 +15,12 @@ export async function POST(request: NextRequest) {
             status,
             organizerId,
         } = body;
+        const normalizedImages = splitCommaSeparated(imageUrls);
 
         if (
             !title ||
             !description ||
-            !imageUrls ||
+            !normalizedImages.length ||
             price === undefined ||
             stock === undefined ||
             !status ||
@@ -46,22 +48,36 @@ export async function POST(request: NextRequest) {
             data: {
                 title,
                 description,
-                imageUrls,
                 price: Number(price),
                 stock: Number(stock),
                 deadline: deadline ? new Date(deadline) : null,
                 status,
                 organizerId: Number(organizerId),
+                images: {
+                    create: normalizedImages.map((url, index) => ({
+                        url,
+                        sortOrder: index,
+                    })),
+                },
+            },
+            include: {
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
             },
         });
 
         return NextResponse.json({
             success: true,
             message: "开团发布成功",
-            data: activity,
+            data: {
+                ...activity,
+                imageUrls: activity.images.map((item) => item.url).join(","),
+            },
         });
     } catch (error) {
-        console.error("开团发布失败：", error);
+        console.error("开团发布失败:", error);
         return NextResponse.json(
             { success: false, message: "开团发布失败" },
             { status: 500 }

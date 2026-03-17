@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type StoredUser = {
@@ -16,6 +17,7 @@ const storageKey = "rc_user";
 
 export default function TopNav() {
     const [user, setUser] = useState<StoredUser | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
         const syncUser = () => {
@@ -40,20 +42,22 @@ export default function TopNav() {
             }
         };
 
-        const handleCustom = () => syncUser();
+        const handleUserUpdated = () => syncUser();
 
         window.addEventListener("storage", handleStorage);
-        window.addEventListener("rc-user-updated", handleCustom);
+        window.addEventListener("rc-user-updated", handleUserUpdated);
 
         return () => {
             window.removeEventListener("storage", handleStorage);
-            window.removeEventListener("rc-user-updated", handleCustom);
+            window.removeEventListener("rc-user-updated", handleUserUpdated);
         };
     }, []);
 
     const handleLogout = () => {
         localStorage.removeItem(storageKey);
+        window.dispatchEvent(new Event("rc-user-updated"));
         setUser(null);
+        router.push("/login");
     };
 
     return (
@@ -91,10 +95,7 @@ export default function TopNav() {
                             <Link href="/profile" className="hover:text-white">
                                 个人中心
                             </Link>
-                            <Link
-                                href="/scores"
-                                className="hover:text-white"
-                            >
+                            <Link href="/scores" className="hover:text-white">
                                 我的战绩
                             </Link>
                             <span className="text-white">

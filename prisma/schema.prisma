@@ -34,6 +34,15 @@ model User {
   groupJoins     GroupJoin[]
 }
 
+model ForumSection {
+  id          String   @id
+  name        String
+  description String
+  displayOrder Int
+
+  posts       Post[]
+}
+
 model Post {
   id        Int       @id @default(autoincrement())
   title     String
@@ -45,6 +54,7 @@ model Post {
   updatedAt DateTime  @updatedAt
 
   author    User      @relation(fields: [authorId], references: [id])
+  sectionMeta ForumSection @relation(fields: [section], references: [id])
   comments  Comment[]
 }
 
@@ -94,20 +104,43 @@ model Fanwork {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  imageUrls   String
-  tags        String
   authorId    Int
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   author      User     @relation(fields: [authorId], references: [id])
+  images      FanworkImage[]
+  tags        FanworkTag[]
+}
+
+model FanworkImage {
+  id         Int      @id @default(autoincrement())
+  fanworkId  Int
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  fanwork    Fanwork  @relation(fields: [fanworkId], references: [id], onDelete: Cascade)
+
+  @@index([fanworkId, sortOrder])
+}
+
+model FanworkTag {
+  id         Int      @id @default(autoincrement())
+  fanworkId  Int
+  name       String
+  createdAt  DateTime @default(now())
+
+  fanwork    Fanwork  @relation(fields: [fanworkId], references: [id], onDelete: Cascade)
+
+  @@unique([fanworkId, name])
+  @@index([name])
 }
 
 model GroupActivity {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  imageUrls   String
   price       Float
   stock       Int
   deadline    DateTime?
@@ -117,7 +150,20 @@ model GroupActivity {
   updatedAt   DateTime @updatedAt
 
   organizer   User     @relation(fields: [organizerId], references: [id])
+  images      GroupActivityImage[]
   joins       GroupJoin[]
+}
+
+model GroupActivityImage {
+  id         Int      @id @default(autoincrement())
+  groupId    Int
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  group      GroupActivity @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, sortOrder])
 }
 
 model GroupJoin {

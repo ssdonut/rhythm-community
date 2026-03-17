@@ -104,10 +104,13 @@ export default function GroupDetailPage() {
             .catch(() => setMessage("加载参团列表失败"));
     }, [groupId]);
 
-    const canCancelGroup =
+    const canCancelGroup = !!user && !!group;
+    const canActuallyCancelGroup =
         !!user &&
         !!group &&
-        (user.id === group.organizerId || user.role === "admin");
+        (user.id === group.organizerId ||
+            user.id === group.organizer.id ||
+            user.role === "admin");
 
     const handleJoin = async () => {
         if (!user) {
@@ -226,6 +229,11 @@ export default function GroupDetailPage() {
 
     const handleCancelGroup = async () => {
         if (!user || !group) {
+            return;
+        }
+        if (!canActuallyCancelGroup) {
+            setMessage("只有团长或管理员可以取消开团");
+            setIsSuccess(false);
             return;
         }
         const confirmed = window.confirm("确认取消这个开团吗？");
@@ -395,6 +403,11 @@ export default function GroupDetailPage() {
                                             onClick={handleCancelGroup}
                                             disabled={group.status === "已取消"}
                                             className="rounded-full border border-red-300 px-6 py-2 text-sm font-semibold text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                                            title={
+                                                canActuallyCancelGroup
+                                                    ? "团长和管理员可取消开团"
+                                                    : "只有团长或管理员可以取消开团"
+                                            }
                                         >
                                             {group.status === "已取消"
                                                 ? "已取消开团"

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { joinCommaSeparated } from "@/lib/content-mappers";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -24,8 +25,12 @@ export async function GET(request: NextRequest) {
                           },
                           {
                               tags: {
-                                  contains: query,
-                                  mode: "insensitive",
+                                  some: {
+                                      name: {
+                                          contains: query,
+                                          mode: "insensitive",
+                                      },
+                                  },
                               },
                           },
                       ],
@@ -36,9 +41,15 @@ export async function GET(request: NextRequest) {
                 id: true,
                 title: true,
                 description: true,
-                imageUrls: true,
-                tags: true,
                 createdAt: true,
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
+                tags: {
+                    orderBy: { name: "asc" },
+                    select: { name: true },
+                },
                 author: {
                     select: {
                         id: true,
@@ -54,10 +65,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: "获取同人作品列表成功",
-            data: fanworks,
+            data: fanworks.map((fanwork) => ({
+                ...fanwork,
+                imageUrls: joinCommaSeparated(
+                    fanwork.images.map((item) => item.url)
+                ),
+                tags: joinCommaSeparated(
+                    fanwork.tags.map((item) => item.name)
+                ),
+            })),
         });
     } catch (error) {
-        console.error("获取同人作品列表失败：", error);
+        console.error("获取同人作品列表失败:", error);
         return NextResponse.json(
             { success: false, message: "获取同人作品列表失败" },
             { status: 500 }

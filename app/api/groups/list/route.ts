@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { joinCommaSeparated } from "@/lib/content-mappers";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
@@ -54,12 +55,15 @@ export async function GET(request: NextRequest) {
                 id: true,
                 title: true,
                 description: true,
-                imageUrls: true,
                 price: true,
                 stock: true,
                 status: true,
                 deadline: true,
                 createdAt: true,
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
                 organizer: {
                     select: {
                         id: true,
@@ -75,10 +79,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             success: true,
             message: "获取开团列表成功",
-            data: groups,
+            data: groups.map((group) => ({
+                ...group,
+                imageUrls: joinCommaSeparated(
+                    group.images.map((item) => item.url)
+                ),
+            })),
         });
     } catch (error) {
-        console.error("获取开团列表失败：", error);
+        console.error("获取开团列表失败:", error);
         return NextResponse.json(
             { success: false, message: "获取开团列表失败" },
             { status: 500 }

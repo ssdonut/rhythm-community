@@ -41,6 +41,11 @@ export async function GET(request: NextRequest) {
                 imageUrl: true,
                 createdAt: true,
                 section: true,
+                sectionMeta: {
+                    select: {
+                        name: true,
+                    },
+                },
                 author: {
                     select: {
                         id: true,
@@ -60,7 +65,9 @@ export async function GET(request: NextRequest) {
 
         const normalizedPosts = posts.map((post) => ({
             ...post,
-            sectionName: getForumSectionMeta(post.section).name,
+            sectionName:
+                post.sectionMeta?.name ||
+                getForumSectionMeta(post.section).name,
         }));
 
         return NextResponse.json({
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest) {
             data: normalizedPosts,
         });
     } catch (error) {
-        console.error("获取帖子列表失败：", error);
+        console.error("获取帖子列表失败:", error);
         return NextResponse.json(
             {
                 success: false,

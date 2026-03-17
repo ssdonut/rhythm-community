@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { joinCommaSeparated } from "@/lib/content-mappers";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const resolvedParams = await Promise.resolve(params);
+        const resolvedParams = await params;
         const id = Number(resolvedParams.id);
         if (!id) {
             return NextResponse.json(
-                { success: false, message: "作品ID不能为空" },
+                { success: false, message: "作品 ID 不能为空" },
                 { status: 400 }
             );
         }
@@ -21,9 +22,15 @@ export async function GET(
                 id: true,
                 title: true,
                 description: true,
-                imageUrls: true,
-                tags: true,
                 createdAt: true,
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
+                tags: {
+                    orderBy: { name: "asc" },
+                    select: { name: true },
+                },
                 author: {
                     select: {
                         id: true,
@@ -46,10 +53,18 @@ export async function GET(
         return NextResponse.json({
             success: true,
             message: "获取作品成功",
-            data: fanwork,
+            data: {
+                ...fanwork,
+                imageUrls: joinCommaSeparated(
+                    fanwork.images.map((item) => item.url)
+                ),
+                tags: joinCommaSeparated(
+                    fanwork.tags.map((item) => item.name)
+                ),
+            },
         });
     } catch (error) {
-        console.error("获取作品失败：", error);
+        console.error("获取作品失败:", error);
         return NextResponse.json(
             { success: false, message: "获取作品失败" },
             { status: 500 }
@@ -59,10 +74,10 @@ export async function GET(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const resolvedParams = await Promise.resolve(params);
+        const resolvedParams = await params;
         const id = Number(resolvedParams.id);
         const body = await request.json();
         const { requesterId } = body;
@@ -108,7 +123,7 @@ export async function DELETE(
             message: "删除作品成功",
         });
     } catch (error) {
-        console.error("删除作品失败：", error);
+        console.error("删除作品失败:", error);
         return NextResponse.json(
             { success: false, message: "删除作品失败" },
             { status: 500 }

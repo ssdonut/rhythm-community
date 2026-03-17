@@ -9,40 +9,43 @@ export async function GET() {
 
         const [todayPosts, todayBeatmaps, todayFanworks, activeGroups] =
             await Promise.all([
-            prisma.post.count({
-                where: {
-                    createdAt: {
-                        gte: startOfDay,
-                    },
-                },
-            }),
-            prisma.beatmap.count({
-                where: {
-                    createdAt: {
-                        gte: startOfDay,
-                    },
-                },
-            }),
-            prisma.fanwork.count({
-                where: {
-                    createdAt: {
-                        gte: startOfDay,
-                    },
-                },
-            }),
-            prisma.groupActivity.count({
-                where: {
-                    OR: [
-                        { deadline: null },
-                        {
-                            deadline: {
-                                gte: now,
-                            },
+                prisma.post.count({
+                    where: {
+                        createdAt: {
+                            gte: startOfDay,
                         },
-                    ],
-                },
-            }),
-        ]);
+                    },
+                }),
+                prisma.beatmap.count({
+                    where: {
+                        createdAt: {
+                            gte: startOfDay,
+                        },
+                    },
+                }),
+                prisma.fanwork.count({
+                    where: {
+                        createdAt: {
+                            gte: startOfDay,
+                        },
+                    },
+                }),
+                prisma.groupActivity.count({
+                    where: {
+                        status: {
+                            notIn: ["已取消", "cancelled", "canceled"],
+                        },
+                        OR: [
+                            { deadline: null },
+                            {
+                                deadline: {
+                                    gte: now,
+                                },
+                            },
+                        ],
+                    },
+                }),
+            ]);
 
         return NextResponse.json({
             success: true,

@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { joinCommaSeparated } from "@/lib/content-mappers";
 import { prisma } from "@/lib/prisma";
+
+const CANCELLED_STATUS = "\u5df2\u53d6\u6d88";
+
+function normalizeGroupActivity<T extends { images: Array<{ url: string }> }>(
+    activity: T
+) {
+    return {
+        ...activity,
+        imageUrls: joinCommaSeparated(activity.images.map((item) => item.url)),
+    };
+}
 
 export async function GET(
     request: NextRequest,
@@ -10,7 +22,7 @@ export async function GET(
         const id = Number(resolvedParams.id);
         if (!id) {
             return NextResponse.json(
-                { success: false, message: "开团 ID 不能为空" },
+                { success: false, message: "Invalid group id" },
                 { status: 400 }
             );
         }
@@ -21,13 +33,16 @@ export async function GET(
                 id: true,
                 title: true,
                 description: true,
-                imageUrls: true,
                 price: true,
                 stock: true,
                 status: true,
                 deadline: true,
                 createdAt: true,
                 organizerId: true,
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
                 organizer: {
                     select: {
                         id: true,
@@ -42,20 +57,20 @@ export async function GET(
 
         if (!activity) {
             return NextResponse.json(
-                { success: false, message: "开团不存在" },
+                { success: false, message: "Group not found" },
                 { status: 404 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: "获取开团成功",
-            data: activity,
+            message: "Group fetched successfully",
+            data: normalizeGroupActivity(activity),
         });
     } catch (error) {
-        console.error("获取开团失败：", error);
+        console.error("Failed to fetch group:", error);
         return NextResponse.json(
-            { success: false, message: "获取开团失败" },
+            { success: false, message: "Failed to fetch group" },
             { status: 500 }
         );
     }
@@ -73,7 +88,7 @@ export async function PUT(
 
         if (!id || !requesterId || action !== "cancel") {
             return NextResponse.json(
-                { success: false, message: "请求参数无效" },
+                { success: false, message: "Invalid request" },
                 { status: 400 }
             );
         }
@@ -85,7 +100,7 @@ export async function PUT(
 
         if (!requester || requester.isBanned) {
             return NextResponse.json(
-                { success: false, message: "没有权限取消该开团" },
+                { success: false, message: "No permission to cancel this group" },
                 { status: 403 }
             );
         }
@@ -98,33 +113,36 @@ export async function PUT(
         const isAdmin = requester.role === "admin";
         if (!activity || (!isAdmin && activity.organizerId !== Number(requesterId))) {
             return NextResponse.json(
-                { success: false, message: "没有权限取消该开团" },
+                { success: false, message: "No permission to cancel this group" },
                 { status: 403 }
             );
         }
 
-        if (activity.status === "已取消") {
+        if (activity.status === CANCELLED_STATUS) {
             return NextResponse.json({
                 success: true,
-                message: "该开团已取消",
-                data: { status: "已取消" },
+                message: "Group already cancelled",
+                data: { status: CANCELLED_STATUS },
             });
         }
 
         const updated = await prisma.groupActivity.update({
             where: { id },
-            data: { status: "已取消" },
+            data: { status: CANCELLED_STATUS },
             select: {
                 id: true,
                 title: true,
                 description: true,
-                imageUrls: true,
                 price: true,
                 stock: true,
                 status: true,
                 deadline: true,
                 createdAt: true,
                 organizerId: true,
+                images: {
+                    orderBy: { sortOrder: "asc" },
+                    select: { url: true },
+                },
                 organizer: {
                     select: {
                         id: true,
@@ -139,13 +157,13 @@ export async function PUT(
 
         return NextResponse.json({
             success: true,
-            message: "取消开团成功",
-            data: updated,
+            message: "Group cancelled successfully",
+            data: normalizeGroupActivity(updated),
         });
     } catch (error) {
-        console.error("取消开团失败：", error);
+        console.error("Failed to cancel group:", error);
         return NextResponse.json(
-            { success: false, message: "取消开团失败" },
+            { success: false, message: "Failed to cancel group" },
             { status: 500 }
         );
     }
@@ -163,7 +181,7 @@ export async function DELETE(
 
         if (!id || !requesterId) {
             return NextResponse.json(
-                { success: false, message: "用户不能为空" },
+                { success: false, message: "Invalid user" },
                 { status: 400 }
             );
         }
@@ -175,7 +193,7 @@ export async function DELETE(
 
         if (!requester || requester.isBanned) {
             return NextResponse.json(
-                { success: false, message: "没有权限删除该开团" },
+                { success: false, message: "No permission to delete this group" },
                 { status: 403 }
             );
         }
@@ -188,7 +206,7 @@ export async function DELETE(
         const isAdmin = requester.role === "admin";
         if (!activity || (!isAdmin && activity.organizerId !== Number(requesterId))) {
             return NextResponse.json(
-                { success: false, message: "没有权限删除该开团" },
+                { success: false, message: "No permission to delete this group" },
                 { status: 403 }
             );
         }
@@ -199,12 +217,12 @@ export async function DELETE(
 
         return NextResponse.json({
             success: true,
-            message: "删除开团成功",
+            message: "Group deleted successfully",
         });
     } catch (error) {
-        console.error("删除开团失败：", error);
+        console.error("Failed to delete group:", error);
         return NextResponse.json(
-            { success: false, message: "删除开团失败" },
+            { success: false, message: "Failed to delete group" },
             { status: 500 }
         );
     }

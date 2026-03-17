@@ -27,10 +27,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const author = await prisma.user.findUnique({
-            where: { id: Number(authorId) },
-            select: { isBanned: true },
-        });
+        const [sectionRecord, author] = await Promise.all([
+            prisma.forumSection.findUnique({
+                where: { id: section },
+                select: { id: true, name: true },
+            }),
+            prisma.user.findUnique({
+                where: { id: Number(authorId) },
+                select: { isBanned: true },
+            }),
+        ]);
+
+        if (!sectionRecord) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    message: "专区无效",
+                },
+                { status: 400 }
+            );
+        }
 
         if (!author || author.isBanned) {
             return NextResponse.json(
@@ -58,11 +74,12 @@ export async function POST(request: NextRequest) {
             data: {
                 ...post,
                 section,
-                sectionName: getForumSectionMeta(section).name,
+                sectionName:
+                    sectionRecord.name || getForumSectionMeta(section).name,
             },
         });
     } catch (error) {
-        console.error("发帖失败：", error);
+        console.error("发帖失败:", error);
         return NextResponse.json(
             {
                 success: false,

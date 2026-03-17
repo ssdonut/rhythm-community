@@ -6,14 +6,15 @@ export default function RegisterPage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (!username || !email || !password) {
-            setMessage("请输入用户名、邮箱和密码");
+        if (!username || !email || !password || !confirmPassword) {
+            setMessage("请输入用户名、邮箱、密码和确认密码");
             setIsSuccess(false);
             return;
         }
@@ -27,6 +28,12 @@ export default function RegisterPage() {
 
         if (password.length < 6) {
             setMessage("密码长度不能少于 6 位");
+            setIsSuccess(false);
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            setMessage("两次输入的密码不一致");
             setIsSuccess(false);
             return;
         }
@@ -55,6 +62,7 @@ export default function RegisterPage() {
                 setUsername("");
                 setEmail("");
                 setPassword("");
+                setConfirmPassword("");
             }
         } catch (error) {
             console.error("注册失败：", error);
@@ -110,6 +118,19 @@ export default function RegisterPage() {
                             placeholder="请输入密码"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            className="w-full rounded-xl border px-4 py-2 outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="mb-2 block text-sm font-medium">
+                            确认密码
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="请再次输入密码"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
                             className="w-full rounded-xl border px-4 py-2 outline-none"
                         />
                     </div>

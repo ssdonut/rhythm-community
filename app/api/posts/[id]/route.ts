@@ -26,6 +26,11 @@ export async function GET(
                 section: true,
                 createdAt: true,
                 authorId: true,
+                sectionMeta: {
+                    select: {
+                        name: true,
+                    },
+                },
                 author: {
                     select: {
                         id: true,
@@ -50,11 +55,13 @@ export async function GET(
             message: "获取帖子成功",
             data: {
                 ...post,
-                sectionName: getForumSectionMeta(post.section).name,
+                sectionName:
+                    post.sectionMeta?.name ||
+                    getForumSectionMeta(post.section).name,
             },
         });
     } catch (error) {
-        console.error("获取帖子失败：", error);
+        console.error("获取帖子失败:", error);
         return NextResponse.json(
             { success: false, message: "获取帖子失败" },
             { status: 500 }
@@ -86,15 +93,28 @@ export async function PUT(
             );
         }
 
-        const post = await prisma.post.findUnique({
-            where: { id },
-            select: { authorId: true },
-        });
+        const [post, sectionRecord] = await Promise.all([
+            prisma.post.findUnique({
+                where: { id },
+                select: { authorId: true },
+            }),
+            prisma.forumSection.findUnique({
+                where: { id: section },
+                select: { id: true, name: true },
+            }),
+        ]);
 
         if (!post || post.authorId !== Number(authorId)) {
             return NextResponse.json(
                 { success: false, message: "没有权限编辑该帖子" },
                 { status: 403 }
+            );
+        }
+
+        if (!sectionRecord) {
+            return NextResponse.json(
+                { success: false, message: "专区无效" },
+                { status: 400 }
             );
         }
 
@@ -114,6 +134,11 @@ export async function PUT(
                 section: true,
                 createdAt: true,
                 authorId: true,
+                sectionMeta: {
+                    select: {
+                        name: true,
+                    },
+                },
             },
         });
 
@@ -122,12 +147,14 @@ export async function PUT(
             message: "更新帖子成功",
             data: {
                 ...updatedPost,
-                section,
-                sectionName: getForumSectionMeta(section).name,
+                sectionName:
+                    updatedPost.sectionMeta?.name ||
+                    sectionRecord.name ||
+                    getForumSectionMeta(section).name,
             },
         });
     } catch (error) {
-        console.error("更新帖子失败：", error);
+        console.error("更新帖子失败:", error);
         return NextResponse.json(
             { success: false, message: "更新帖子失败" },
             { status: 500 }
@@ -186,7 +213,7 @@ export async function DELETE(
             message: "删除帖子成功",
         });
     } catch (error) {
-        console.error("删除帖子失败：", error);
+        console.error("删除帖子失败:", error);
         return NextResponse.json(
             { success: false, message: "删除帖子失败" },
             { status: 500 }

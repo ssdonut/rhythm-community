@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 type StoredUser = {
     id: number;
@@ -23,6 +24,7 @@ export default function ProfilePage() {
     const [message, setMessage] = useState("");
     const [isSuccess, setIsSuccess] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const router = useRouter();
 
     const updateStoredUser = (next: StoredUser) => {
         localStorage.setItem(storageKey, JSON.stringify(next));
@@ -171,6 +173,48 @@ export default function ProfilePage() {
         reader.readAsDataURL(file);
     };
 
+    const handleDeleteAccount = async () => {
+        if (!user) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            "确认注销账号吗？此操作会删除你的个人资料、帖子、评论、谱面、同人、战绩和开团记录，且无法恢复。"
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        setMessage("");
+        setIsSuccess(false);
+
+        try {
+            const response = await fetch("/api/profile", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    id: user.id,
+                }),
+            });
+            const result = await response.json();
+            setMessage(result.message);
+            setIsSuccess(result.success);
+
+            if (result.success) {
+                localStorage.removeItem(storageKey);
+                window.dispatchEvent(new Event("rc-user-updated"));
+                setUser(null);
+                router.push("/register");
+            }
+        } catch (error) {
+            console.error("注销账号失败：", error);
+            setMessage("注销账号失败，请稍后再试");
+            setIsSuccess(false);
+        }
+    };
+
     if (!user) {
         return (
             <main className="min-h-screen bg-[var(--rc-bg)] text-[var(--rc-text)]">
@@ -249,6 +293,13 @@ export default function ProfilePage() {
                     >
                         添加战绩
                     </a>
+                    <button
+                        type="button"
+                        onClick={handleDeleteAccount}
+                        className="rounded-xl border border-red-300 px-4 py-2 text-sm text-red-600"
+                    >
+                        注销账号
+                    </button>
                 </div>
 
                 <form
